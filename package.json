@@ -1,0 +1,21 @@
+{
+  "name": "cong-tiep-nhan-phan-anh-giao-thong",
+  "version": "1.0.0",
+  "private": true,
+  "description": "He thong tiep nhan va quan tri phan anh giao thong",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "archiver": "^7.0.1",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "multer": "^1.4.5-lts.1"
+  }
+}
