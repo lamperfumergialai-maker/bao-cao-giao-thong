@@ -52,7 +52,6 @@ function formatLocation(item) {
     return locText;
 }
 
-
 function formatMedia(item) {
     const fileUrl = item.filePath || (item.fileName ? `/api/admin/uploads/${item.fileName}` : null);
     if (!fileUrl) return 'Không có';
