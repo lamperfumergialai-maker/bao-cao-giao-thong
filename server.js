@@ -326,7 +326,8 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ success: false, message: err.message || "Lỗi máy chủ." });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Hệ thống đang chạy tại cổng ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Traffic reporting app listening on port ${PORT}`);
+  console.log(`Persistent data directory: ${DATA_DIR}`);
 });
+
