@@ -46,11 +46,14 @@ function formatLocation(item) {
     }
 
     if (lat != null && lng != null) {
-        const mapUrl = 'https://google.com' + lat + ',' + lng;
-        return locText + '<br><a href="' + mapUrl + '" target="_blank" rel="noopener noreferrer" class="btn-map">📍 Mở trên Google Maps</a>';
+        const mapUrl = new URL("https://google.com");
+        mapUrl.searchParams.set("q", lat + "," + lng);
+        
+        return locText + '<br><a href="' + mapUrl.toString() + '" target="_blank" rel="noopener noreferrer" class="btn-map">📍 Mở trên Google Maps</a>';
     }
     return locText;
 }
+
 
 function formatMedia(item) {
     const fileUrl = item.filePath || (item.fileName ? `/api/admin/uploads/${item.fileName}` : null);
