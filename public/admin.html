@@ -1,83 +1,158 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Quản trị phản ánh giao thông</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<style>
-*{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;background:#f1f5f9;color:#1e293b}.wrap{max-width:1500px;margin:auto;padding:22px}.login{max-width:390px;margin:90px auto;background:white;padding:26px;border-radius:12px;box-shadow:0 5px 24px #102a4312}.login h2{text-align:center;color:#075bb5}.login input,.filters input,.filters select,.edit select,.edit textarea{padding:10px;border:1px solid #cbd5e1;border-radius:6px;width:100%;font:inherit}.btn{border:0;border-radius:6px;padding:10px 13px;background:#075bb5;color:white;cursor:pointer;font-weight:700}.btn:hover{filter:brightness(.92)}.btn.green{background:#15803d}.btn.red{background:#b91c1c}.btn.gray{background:#475569}.login .btn{width:100%;margin-top:12px}.panel{display:none}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}.top h1{font-size:23px;margin:0;color:#075bb5}.actions{display:flex;gap:8px;flex-wrap:wrap}.stats{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px;margin-bottom:16px}.stat{background:white;border-radius:9px;padding:15px;box-shadow:0 2px 8px #0f172a0a}.stat span{display:block;color:#64748b;font-size:13px}.stat strong{display:block;font-size:26px;margin-top:6px}.box{background:white;border-radius:10px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px #0f172a0a}.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr auto;gap:9px;align-items:end}.filters label,.edit label{display:block;font-size:12px;font-weight:bold;margin-bottom:5px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:1100px}th,td{border-bottom:1px solid #e2e8f0;padding:10px;text-align:left;vertical-align:top;font-size:13px}th{background:#eaf2fb;color:#174b80;position:sticky;top:0}td small{color:#64748b}.pill{display:inline-block;border-radius:20px;padding:4px 8px;background:#e2e8f0;font-size:11px}.pill.done{background:#dcfce7;color:#166534}.pill.new{background:#dbeafe;color:#1d4ed8}.media{max-width:130px;max-height:110px;display:block;border-radius:5px}.edit{display:grid;grid-template-columns:1fr 1fr 2fr auto;gap:8px;align-items:end;min-width:520px}.edit textarea{height:40px;resize:vertical}.map{height:440px;border-radius:8px;z-index:1}.hidden{display:none!important}.notice{margin-top:10px;font-size:13px}.error{color:#b91c1c}.success{color:#15803d}.empty{text-align:center;padding:25px;color:#64748b}@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr 1fr}.filters .wide{grid-column:1/-1}}@media(max-width:520px){.wrap{padding:12px}.stats{grid-template-columns:1fr 1fr}.top h1{font-size:19px}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị phản ánh giao thông</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f6f9; }
+        .login-box { max-width: 350px; margin: 80px auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .login-box input, .login-box button { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; }
+        .login-box button { background: #0066cc; color: white; border: none; cursor: pointer; font-weight: bold; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 8px; display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: top; }
+        th { background-color: #0066cc; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .media-preview { max-width: 150px; max-height: 150px; display: block; margin-top: 5px; border-radius: 4px; }
+        .btn-refresh { padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-logout { padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-map { display: inline-block; margin-top: 6px; padding: 5px 10px; background: #e8f0fe; color: #0066cc; border: 1px solid #0066cc; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: bold; }
+    </style>
 </head>
 <body>
-<div id="loginBox" class="login">
-<h2>ĐĂNG NHẬP QUẢN TRỊ</h2>
-<form id="loginForm"><input type="password" id="password" required autocomplete="current-password" placeholder="Mật khẩu quản trị"><button class="btn" type="submit">Đăng nhập</button></form>
-<div id="loginMsg" class="notice error"></div>
-</div>
-<main id="panel" class="wrap panel">
-<header class="top"><h1>QUẢN TRỊ PHẢN ÁNH GIAO THÔNG</h1><div class="actions">
-<button class="btn green" id="refreshBtn">Làm mới</button><button class="btn" id="exportBtn">Xuất Excel</button><button class="btn gray" id="backupBtn">Sao lưu</button><button class="btn gray" id="restoreBtn">Phục hồi</button><input id="restoreFile" type="file" accept=".zip,application/zip" class="hidden"><button class="btn red" id="logoutBtn">Đăng xuất</button>
-</div></header>
-<section class="stats">
-<div class="stat"><span>Tổng phản ánh</span><strong id="total">0</strong></div>
-<div class="stat"><span>Mới tiếp nhận</span><strong id="newCount">0</strong></div>
-<div class="stat"><span>Đang xử lý</span><strong id="workingCount">0</strong></div>
-<div class="stat"><span>Đã xử lý</span><strong id="doneCount">0</strong></div>
-</section>
-<section class="box">
-<h3>Tìm kiếm và lọc phản ánh</h3>
-<div class="filters">
-<div class="wide"><label>Từ khóa (mã, họ tên, SĐT, địa điểm, nội dung)</label><input id="q" placeholder="Nhập từ khóa..."></div>
-<div><label>Phân loại</label><select id="category"><option value="">Tất cả</option></select></div>
-<div><label>Trạng thái</label><select id="status"><option value="">Tất cả</option><option>Mới tiếp nhận</option><option>Đã phân công</option><option>Đang xử lý</option><option>Đã xử lý</option><option>Không thuộc thẩm quyền</option></select></div>
-<div><label>Từ ngày</label><input type="date" id="from"></div>
-<div><label>Đến ngày</label><input type="date" id="to"></div>
-<button class="btn" id="searchBtn">Lọc</button>
-</div></section>
-<section class="box"><h3>Danh sách phản ánh <small id="resultCount"></small></h3><div class="table-wrap"><table><thead><tr><th>Thời gian / Mã</th><th>Người gửi</th><th>Vị trí</th><th>Nội dung</th><th>Minh chứng</th><th>Phân loại / Tiến độ xử lý</th></tr></thead><tbody id="rows"></tbody></table></div><div id="empty" class="empty hidden">Không có phản ánh phù hợp.</div></section>
-<section class="box"><h3>Bản đồ vị trí phản ánh có tọa độ GPS</h3><div id="map" class="map"></div><div class="hint">Bản đồ sử dụng OpenStreetMap. Chỉ phản ánh có tọa độ GPS mới được hiển thị.</div></section>
-<div id="notice" class="notice"></div>
-</main>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script>
-const CATEGORIES=["Chưa phân loại","Ổ gà / mặt đường","Biển báo giao thông","Đèn tín hiệu","Ùn tắc giao thông","Tai nạn / sự cố","Lấn chiếm lòng lề đường","Hạ tầng giao thông","Khác"];
-const STATUSES=["Mới tiếp nhận","Đã phân công","Đang xử lý","Đã xử lý","Không thuộc thẩm quyền"];
-let reports=[],map=null,markers=null;
-const $=id=>document.getElementById(id);
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function dateText(v){return v?new Date(v).toLocaleString("vi-VN"):""}
-function notice(t,ok=true){$("notice").textContent=t;$("notice").className="notice "+(ok?"success":"error")}
-async function api(url,options={}){const r=await fetch(url,{credentials:"same-origin",...options});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.message||`Lỗi HTTP ${r.status}`);return d}
-async function checkSession(){try{await api("/api/admin/me");$("loginBox").classList.add("hidden");$("panel").style.display="block";initMap();await loadReports()}catch{$("loginBox").classList.remove("hidden")}}
-$("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginMsg").textContent="";try{await api("/api/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:$("password").value})});$("password").value="";await checkSession()}catch(err){$("loginMsg").textContent=err.message}});
-$("logoutBtn").onclick=async()=>{await api("/api/admin/logout",{method:"POST"});location.reload()};
-function initMap(){if(map)return;map=L.map("map").setView([16.0,108.0],5);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap"}).addTo(map);markers=L.layerGroup().addTo(map)}
-function buildCategoryFilter(){const s=$("category"),current=s.value;s.innerHTML='<option value="">Tất cả</option>'+CATEGORIES.map(c=>`<option>${esc(c)}</option>`).join("");s.value=current}
-async function loadReports(){
- const p=new URLSearchParams({q:$("q").value,category:$("category").value,status:$("status").value,from:$("from").value,to:$("to").value});
- try{const d=await api("/api/admin/reports?"+p);reports=d.reports||[];render();notice("Đã cập nhật dữ liệu.");}catch(e){notice(e.message,false)}
-}
-function render(){
- $("total").textContent=reports.length;$("newCount").textContent=reports.filter(r=>r.status==="Mới tiếp nhận").length;$("workingCount").textContent=reports.filter(r=>["Đã phân công","Đang xử lý"].includes(r.status)).length;$("doneCount").textContent=reports.filter(r=>r.status==="Đã xử lý").length;
- $("resultCount").textContent=`(${reports.length} kết quả)`;$("empty").classList.toggle("hidden",reports.length>0);
- $("rows").innerHTML=reports.map(r=>{
-  const isVideo=(r.mimeType||"").startsWith("video/");
-  const media=r.fileName?`<a href="/api/admin/media/${encodeURIComponent(r.fileName)}" target="_blank" rel="noopener">${isVideo?"Mở video":"Xem ảnh"}</a>${isVideo?`<video class="media" controls src="/api/admin/media/${encodeURIComponent(r.fileName)}"></video>`:`<a href="/api/admin/media/${encodeURIComponent(r.fileName)}" target="_blank" rel="noopener"><img class="media" src="/api/admin/media/${encodeURIComponent(r.fileName)}" alt="Minh chứng"></a>`}`:"Không có";
-  const lat=Number(r.latitude),lon=Number(r.longitude),hasGps=Number.isFinite(lat)&&Number.isFinite(lon);
-  const loc=hasGps?`${esc(r.location)}<br><a target="_blank" rel="noopener" href="https://www.google.com/maps?q=${lat},${lon}">📍 Mở Google Maps</a>`:esc(r.location);
-  return `<tr><td><strong>${esc(dateText(r.createdAt))}</strong><br><small>${esc(r.id)}</small></td><td><strong>${esc(r.fullName)}</strong><br>SĐT: ${esc(r.phone)}</td><td>${loc}</td><td>${esc(r.description)}</td><td>${media}<br><small>${Math.round((r.fileSize||0)/1024)} KB</small></td><td><div class="edit"><div><label>Phân loại</label><select id="cat-${esc(r.id)}">${CATEGORIES.map(c=>`<option ${c===r.category?"selected":""}>${esc(c)}</option>`).join("")}</select></div><div><label>Trạng thái</label><select id="st-${esc(r.id)}">${STATUSES.map(s=>`<option ${s===r.status?"selected":""}>${esc(s)}</option>`).join("")}</select></div><div><label>Ghi chú / kết quả xử lý</label><textarea id="note-${esc(r.id)}" maxlength="3000">${esc(r.processingNote||"")}</textarea></div><button class="btn" onclick="saveReport('${encodeURIComponent(r.id)}')">Lưu</button></div><small>Cập nhật: ${esc(dateText(r.updatedAt))}</small></td></tr>`
- }).join("");
- if(markers){markers.clearLayers();reports.forEach(r=>{const lat=Number(r.latitude),lon=Number(r.longitude);if(Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180){L.marker([lat,lon]).bindPopup(`<b>${esc(r.id)}</b><br>${esc(r.category)}<br>${esc(r.status)}<br>${esc(r.location)}`).addTo(markers)}})}
-}
-window.saveReport=async encodedId=>{const id=decodeURIComponent(encodedId);try{await api("/api/admin/reports/"+encodeURIComponent(id),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({category:$("cat-"+id).value,status:$("st-"+id).value,processingNote:$("note-"+id).value})});notice("Đã lưu cập nhật phản ánh.");await loadReports()}catch(e){notice(e.message,false)}};
-$("searchBtn").onclick=loadReports;$("refreshBtn").onclick=loadReports;
-$("exportBtn").onclick=()=>{if(!reports.length){notice("Không có dữ liệu để xuất.",false);return}if(typeof XLSX==="undefined"){notice("Không tải được thư viện Excel. Kiểm tra kết nối Internet.",false);return}const rows=reports.map(r=>({"Mã phản ánh":r.id,"Thời gian":dateText(r.createdAt),"Họ tên":r.fullName,"Điện thoại":r.phone,"Vị trí":r.location,"Vĩ độ":r.latitude??"","Kinh độ":r.longitude??"","Nội dung":r.description,"Phân loại":r.category,"Trạng thái":r.status,"Ghi chú xử lý":r.processingNote,"Tệp minh chứng":r.originalFileName||""}));const ws=XLSX.utils.json_to_sheet(rows);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"PhanAnh");XLSX.writeFile(wb,"Danh_sach_phan_anh_giao_thong.xlsx")};
-$("backupBtn").onclick=async()=>{try{const r=await fetch("/api/admin/backup");if(!r.ok)throw new Error("Không tạo được bản sao lưu.");const blob=await r.blob(),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="sao_luu_phan_anh.zip";a.click();URL.revokeObjectURL(url);notice("Đã tải bản sao lưu.")}catch(e){notice(e.message,false)}};
-$("restoreBtn").onclick=()=>$("restoreFile").click();
-$("restoreFile").onchange=async()=>{const file=$("restoreFile").files[0];if(!file)return;if(!confirm("Phục hồi sẽ thay thế dữ liệu phản ánh hiện tại. Bạn đã sao lưu dữ liệu hiện tại chưa?")){$("restoreFile").value="";return}const fd=new FormData();fd.append("backup",file);try{const r=await fetch("/api/admin/restore",{method:"POST",body:fd});const d=await r.json();if(!r.ok)throw new Error(d.message||"Phục hồi thất bại");notice(d.message);await loadReports()}catch(e){notice(e.message,false)}finally{$("restoreFile").value=""}};
-buildCategoryFilter();checkSession();
-</script>
+
+    <!-- Màn hình đăng nhập -->
+    <div class="login-box" id="loginBox">
+        <h3 style="margin-top:0; text-align:center; color:#0066cc;">Đăng nhập Quản trị</h3>
+        <input type="password" id="adminPass" placeholder="Nhập mật khẩu quản trị...">
+        <button id="loginBtn">Đăng nhập</button>
+    </div>
+
+    <!-- Màn hình danh sách báo cáo -->
+    <div class="container" id="adminPanel">
+        <div class="header">
+            <h2 style="margin:0; color:#333;">Danh sách phản ánh tiếp nhận (<span id="totalCount">0</span>)</h2>
+            <div>
+                <button class="btn-refresh" id="refreshBtn">🔄 Làm mới dữ liệu</button>
+                <button class="btn-logout" id="logoutBtn">Đăng xuất</button>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 140px;">Thời gian</th>
+                    <th style="width: 180px;">Người gửi</th>
+                    <th style="width: 220px;">Vị trí / Tọa độ</th>
+                    <th>Nội dung phản ánh</th>
+                    <th style="width: 180px;">Minh chứng</th>
+                </tr>
+            </thead>
+            <tbody id="reportTableBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('loginBtn').addEventListener('click', login);
+        document.getElementById('adminPass').addEventListener('keypress', e => {
+            if (e.key === 'Enter') login();
+        });
+        document.getElementById('refreshBtn').addEventListener('click', loadReports);
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        // Tự động kiểm tra phiên đăng nhập khi mở trang
+        loadReports(true);
+
+        async function login() {
+            const password = document.getElementById('adminPass').value;
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    alert(data.message || 'Sai mật khẩu quản trị!');
+                    return;
+                }
+                loadReports();
+            } catch (err) {
+                alert('Lỗi kết nối máy chủ.');
+            }
+        }
+
+        async function logout() {
+            await fetch('/api/admin/logout', { method: 'POST' }).catch(() => {});
+            location.reload();
+        }
+
+        function formatLocation(item) {
+            const locText = String(item.location || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            let lat = item.latitude;
+            let lng = item.longitude;
+
+            if (lat == null || lng == null) {
+                const numbers = locText.match(/-?\d+\.\d+/g);
+                if (numbers && numbers.length >= 2) {
+                    lat = numbers.shift();
+                    lng = numbers.shift();
+                }
+            }
+
+            if (lat != null && lng != null) {
+                const mapUrl = `https://google.com{lat},${lng}`;
+                return `${locText}<br><a href="${mapUrl}" target="_blank" rel="noopener noreferrer" class="btn-map">📍 Mở trên Google Maps</a>`;
+            }
+            return locText;
+        }
+
+        function formatMedia(item) {
+            const fileUrl = item.filePath || (item.fileName ? `/api/admin/uploads/${item.fileName}` : null);
+            if (!fileUrl) return 'Không có';
+            const isVideo = (item.mimeType && item.mimeType.startsWith('video/')) || fileUrl.match(/\.(mp4|mov|avi|webm)$/i);
+            if (isVideo) {
+                return `<video src="${fileUrl}" controls class="media-preview"></video>
+                        <a href="${fileUrl}" target="_blank" style="font-size:12px;">Mở video</a>`;
+            }
+            return `<a href="${fileUrl}" target="_blank"><img src="${fileUrl}" class="media-preview" alt="Ảnh minh chứng"></a>`;
+        }
+
+        async function loadReports(isInitialCheck = false) {
+            try {
+                // Thử gọi API lấy danh sách của server.js mới
+                let response = await fetch('/api/admin/reports');
+                if (response.status === 404) {
+                    response = await fetch('/api/reports');
+                }
+
+                if (response.status === 401) {
+                    if (!isInitialCheck) alert('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.');
+                    return;
+                }
+
+                const result = await response.json();
+                const reports = Array.isArray(result) ? result : (result.reports || []);
+
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('totalCount').innerText = reports.length;
+
+                const tbody = document.getElementById('reportTableBody');
+                tbody.innerHTML = reports.map(item => `
+                    <tr>
+                        <td>${new Date(item.createdAt).toLocaleString('vi-VN')}</td>
+                        <td><strong>${item.fullName}</strong><br>SĐT: ${item.phone}</td>
+                        <td>${formatLocation(item)}</td>
+                        <td>${item.description}</td>
+                        <td>${formatMedia(item)}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                if (!isInitialCheck) alert('Không thể tải dữ liệu từ máy chủ.');
+            }
+        }
+    </script>
 </body>
 </html>
